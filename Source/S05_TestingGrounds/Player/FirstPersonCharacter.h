@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Runtime/AIModule/Classes/GenericTeamAgentInterface.h"
 #include "FirstPersonCharacter.generated.h"
 
 class UInputComponent;
 
 UCLASS(config=Game)
-class AFirstPersonCharacter : public ACharacter
+class AFirstPersonCharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -137,6 +138,11 @@ public:
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+    
+private:
+        // IGenericTeamAgentInterface interface
+        FGenericTeamId TeamId;
 
+        virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
 };
 
