@@ -45,6 +45,7 @@ public:
     class USkeletalMeshComponent* MeshComponent;
 
     /** Fires a projectile. */
+    UFUNCTION(BlueprintCallable)
     void OnFire();
 
 };
