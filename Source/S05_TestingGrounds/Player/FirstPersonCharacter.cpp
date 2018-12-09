@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -14,6 +15,8 @@
 #include "AIModule/Classes/GenericTeamAgentInterface.h"
 #include "../Gun.h"
 #include "Engine/World.h"
+#include "GameFramework/SpringArmComponent.h"
+
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -35,6 +38,8 @@ AFirstPersonCharacter::AFirstPersonCharacter(const FObjectInitializer& ObjectIni
     BaseTurnRate = 45.f;
     BaseLookUpRate = 45.f;
 
+
+
     // Create a CameraComponent	
     FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
     FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
@@ -51,15 +56,18 @@ AFirstPersonCharacter::AFirstPersonCharacter(const FObjectInitializer& ObjectIni
     // Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
     // are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
 
-    // Create VR Controllers.
-    R_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("R_MotionController"));
-    R_MotionController->MotionSource = FXRMotionControllerBase::RightHandSourceId;
-    R_MotionController->SetupAttachment(RootComponent);
-    L_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("L_MotionController"));
-    L_MotionController->SetupAttachment(RootComponent);
+    
 
+    TPPMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TPPMeshComponent"));
+    TPPMeshComponent->SetupAttachment(GetCapsuleComponent());
     // Uncomment the following line to turn motion controllers on by default:
     //bUsingMotionControllers = true;
+
+    // Create a CameraComponent	
+    TPPCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TPPCamera"));
+    TPPCameraComponent->SetupAttachment(TPPMeshComponent);
+    TPPCameraComponent->RelativeLocation = FVector(-39.56f, 1.75f, 64.f); // Position the camera
+    TPPCameraComponent->bIsActive = false;
 }
 
 void AFirstPersonCharacter::BeginPlay()
@@ -74,17 +82,12 @@ void AFirstPersonCharacter::BeginPlay()
 
     Gun = GetWorld()->SpawnActor<AGun>(GunClass, SpawnParams);
     Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("GripPoint"));
+
     InputComponent->BindAction("Fire", IE_Pressed, Gun, &AGun::OnFire);
     
-	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
-	if (bUsingMotionControllers)
-	{
-        GetMesh()->SetHiddenInGame(true, true);
-	}
-	else
-	{
-        GetMesh()->SetHiddenInGame(false, true);
-	}
+    
+    GetMesh()->SetHiddenInGame(false, true);
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -132,7 +135,31 @@ void AFirstPersonCharacter::MoveRight(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
-	}
+      
+        Gun->AttachToComponent(TPPMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TEXT("GripPoint"));
+       
+       // FVector Location = GetMesh()->GetComponentLocation();
+        
+        //->GetComponentLocation();
+      // FTransform Tranform = FTransform(GetActorForwardVector() * 100);
+      // FirstPersonCameraComponent->AddAdditiveOffset(Tranform, 90.0f);
+      //  FirstPersonCameraComponent->SetWorldLocation(Location - );
+      //  FirstPersonCameraComponent->SetRelativeLocation(-GetActorForwardVector() * 10000);;
+       // TPPMeshComponent->SetWorldLocation(Location);
+       GetMesh()->SetVisibility(false);
+       TPPMeshComponent->SetOwnerNoSee(false);
+       TPPMeshComponent->Play(false);
+       
+       FirstPersonCameraComponent->Deactivate();
+       TPPCameraComponent->Activate(true);
+
+
+       GetController()->InputComponent->bBlockInput = true;
+        //APlayerController* PlayerController;
+        //PlayerController->SetViewTarget(this)
+       //     GetController()->SetVie
+       //     GetController()->SetVie
+    }   
 }
 
 void AFirstPersonCharacter::TurnAtRate(float Rate)
