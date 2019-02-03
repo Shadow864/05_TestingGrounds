@@ -16,7 +16,7 @@ class AFirstPersonCharacter : public ACharacter, public IGenericTeamAgentInterfa
 {
     GENERATED_BODY()
 
-    
+   
 	/* First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
@@ -34,6 +34,7 @@ class AFirstPersonCharacter : public ACharacter, public IGenericTeamAgentInterfa
     TSubclassOf<class AGun> GunClass;
 
     class AGun* Gun = nullptr; 
+
 
 public:
     AFirstPersonCharacter(const FObjectInitializer& ObjectInitializer);
@@ -80,9 +81,23 @@ public:
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
     
 private:
-        // IGenericTeamAgentInterface interface
-        FGenericTeamId TeamId;
+    // IGenericTeamAgentInterface interface
+    FGenericTeamId TeamId;
 
-        virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
+    virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
+
+public:
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    float Health = 100;
+
+    UFUNCTION(BlueprintCallable)
+    bool IsDead() const { return Health > 0.f; }
+    
+private:
+
+    UFUNCTION()
+    void TakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+    void OnDie();
 };
 

@@ -3,6 +3,8 @@
 #include "Projectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "c:/Program Files/Epic Games/UE_4.20/Engine/Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "c:/Program Files/Epic Games/UE_4.20/Engine/Source/Runtime/Engine/Classes/GameFramework/Character.h"
 
 AProjectile::AProjectile() 
 {
@@ -34,10 +36,15 @@ AProjectile::AProjectile()
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
+	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL))
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+        UGameplayStatics::ApplyPointDamage(OtherActor, 10, NormalImpulse, Hit, nullptr, GetOwner(), nullptr);
 
-		Destroy();
+        if (OtherComp->IsSimulatingPhysics())
+		    OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+        
+
+        if (Cast<ACharacter>(OtherActor))
+		    Destroy();
 	}
 }

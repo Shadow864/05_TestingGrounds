@@ -38,6 +38,7 @@ AFirstPersonCharacter::AFirstPersonCharacter(const FObjectInitializer& ObjectIni
     BaseTurnRate = 45.f;
     BaseLookUpRate = 45.f;
 
+    OnTakeAnyDamage.AddDynamic(this, &AFirstPersonCharacter::TakeAnyDamage);
 
 
     // Create a CameraComponent	
@@ -135,30 +136,6 @@ void AFirstPersonCharacter::MoveRight(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
-      
-        Gun->AttachToComponent(TPPMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TEXT("GripPoint"));
-       
-       // FVector Location = GetMesh()->GetComponentLocation();
-        
-        //->GetComponentLocation();
-      // FTransform Tranform = FTransform(GetActorForwardVector() * 100);
-      // FirstPersonCameraComponent->AddAdditiveOffset(Tranform, 90.0f);
-      //  FirstPersonCameraComponent->SetWorldLocation(Location - );
-      //  FirstPersonCameraComponent->SetRelativeLocation(-GetActorForwardVector() * 10000);;
-       // TPPMeshComponent->SetWorldLocation(Location);
-       GetMesh()->SetVisibility(false);
-       TPPMeshComponent->SetOwnerNoSee(false);
-       TPPMeshComponent->Play(false);
-       
-       FirstPersonCameraComponent->Deactivate();
-       TPPCameraComponent->Activate(true);
-
-
-       GetController()->InputComponent->bBlockInput = true;
-        //APlayerController* PlayerController;
-        //PlayerController->SetViewTarget(this)
-       //     GetController()->SetVie
-       //     GetController()->SetVie
     }   
 }
 
@@ -172,4 +149,33 @@ void AFirstPersonCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+
+void AFirstPersonCharacter::TakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
+{
+    if (Health <= 0)
+        return;
+
+    Health -= Damage;
+
+    Health = FMath::Clamp(Health, 0.f, 100.f);
+
+    if (Health == 0)
+        OnDie();
+}
+
+
+void AFirstPersonCharacter::OnDie()
+{
+    Gun->AttachToComponent(TPPMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, TEXT("GripPoint"));
+
+    GetMesh()->SetVisibility(false);
+    TPPMeshComponent->SetOwnerNoSee(false);
+    TPPMeshComponent->Play(false);
+
+    FirstPersonCameraComponent->Deactivate();
+    TPPCameraComponent->Activate(true);
+
+    GetController()->InputComponent->bBlockInput = true;
 }
